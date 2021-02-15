@@ -165,6 +165,7 @@ def test_platform_admin_sees_only_relevant_settings_for_broadcast_service(
         permissions=['broadcast'],
         organisation_id=ORGANISATION_ID,
         contact_link='contact_us@gov.uk',
+        broadcast_channel="severe",
     )
     mocker.patch('app.service_api_client.get_service', return_value={'data': service_one})
 
@@ -185,12 +186,64 @@ def test_platform_admin_sees_only_relevant_settings_for_broadcast_service(
         'Label Value Action',
         'Notes No notes yet Change the notes for the service',
         'Email authentication Off Change your settings for Email authentication',
+        'Send cell broadcasts Training mode - All networks - Public channel '
+        + 'Change your settings for Send cell broadcasts',
     ]
 
     assert len(rows) == len(expected_rows)
     for index, row in enumerate(expected_rows):
         assert row == " ".join(rows[index].text.split())
     app.service_api_client.get_service.assert_called_with(SERVICE_ONE_ID)
+
+
+@pytest.mark.parametrize(
+    'has_broadcast_permission,service_mode,broadcast_channel,allowed_broadcast_provider,expected_text',
+    [
+        (False, "training", None, None, "Off"),
+        (False, "live", None, None, "Off"),
+        (True, "training", "severe", None, "Training mode - All networks - Public channel"),
+        (True, "training", "test", "ee", "Training mode - EE network - Test channel only"),
+        (True, "live", "test", "three", "Live - Three network - Test channel only"),
+        (True, "live", "test", None, "Live - All networks - Test channel only"),
+        (True, "live", "severe", None, "Live - All networks - Public channel"),
+    ]
+)
+def test_platform_admin_sees_correct_description_of_broadcast_service_setting(
+        client,
+        mocker,
+        api_user_active,
+        no_reply_to_email_addresses,
+        no_letter_contact_blocks,
+        mock_get_organisation,
+        single_sms_sender,
+        mock_get_service_settings_page_common,
+        has_broadcast_permission,
+        service_mode,
+        broadcast_channel,
+        allowed_broadcast_provider,
+        expected_text
+):
+    service_one = service_json(
+        SERVICE_ONE_ID,
+        users=[api_user_active['id']],
+        permissions=['broadcast'],
+        organisation_id=ORGANISATION_ID,
+        contact_link='contact_us@gov.uk',
+        restricted=True if service_mode == "training" else False,
+        broadcast_channel=broadcast_channel,
+        allowed_broadcast_provider=allowed_broadcast_provider,
+    )
+    mocker.patch('app.service_api_client.get_service', return_value={'data': service_one})
+
+    client.login(create_platform_admin_user(), mocker, service_one)
+    response = client.get(url_for(
+        'main.service_settings', service_id=SERVICE_ONE_ID
+    ))
+    assert response.status_code == 200
+    page = BeautifulSoup(response.data.decode('utf-8'), 'html.parser')
+    last_row = page.select('tr')[-1]
+    broadcast_setting_description = last_row.select('td')[1].text.strip()
+    assert broadcast_setting_description == expected_text
 
 
 def test_no_go_live_link_for_service_without_organisation(

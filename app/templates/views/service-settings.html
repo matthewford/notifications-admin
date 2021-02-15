@@ -428,6 +428,23 @@
             {% endif %}
           {% endfor %}
 
+          {% call row() %}
+            {{ text_field('Send cell broadcasts')}}
+            {% call field(wrap=True) %}
+              {% if not broadcast_account_type %}
+              Off
+              {% else %}
+              {{ broadcast_account_type }}
+              {% endif %}
+            {% endcall %}
+            {{ edit_field(
+                'Change',
+                url_for('.service_set_broadcast_account_type', service_id=current_service.id),
+                suffix='your settings for Send cell broadcasts'
+              )
+            }}
+          {% endcall %}
+
         {% endcall %}
 
       </div>

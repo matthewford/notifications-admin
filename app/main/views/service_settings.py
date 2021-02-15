@@ -44,6 +44,7 @@ from app.main.forms import (
     RenameServiceForm,
     SearchByNameForm,
     ServiceBillingDetailsForm,
+    ServiceBroadcastSettingForm,
     ServiceContactDetailsForm,
     ServiceDataRetentionEditForm,
     ServiceDataRetentionForm,
@@ -73,13 +74,91 @@ PLATFORM_ADMIN_SERVICE_PERMISSIONS = OrderedDict([
     ('international_letters', {'title': 'Send international letters', 'requires': 'letter'}),
 ])
 
+BROADCAST_ACCOUNT_TYPES = [
+    {
+        "description": "Training mode - EE network - Test channel only",
+        "service_mode": "training",
+        "broadcast_channel": "test",
+        "provider_restriction": "ee",
+    },
+    {
+        "description": "Training mode - O2 network - Test channel only",
+        "service_mode": "training",
+        "broadcast_channel": "test",
+        "provider_restriction": "o2",
+    },
+    {
+        "description": "Training mode - Three network - Test channel only",
+        "service_mode": "training",
+        "broadcast_channel": "test",
+        "provider_restriction": "three",
+    },
+    {
+        "description": "Training mode - Vodafone network - Test channel only",
+        "service_mode": "training",
+        "broadcast_channel": "test",
+        "provider_restriction": "vodafone",
+    },
+    {
+        "description": "Training mode - All networks - Public channel",
+        "service_mode": "training",
+        "broadcast_channel": "severe",
+        "provider_restriction": None,
+    },
+    {
+        "description": "Live - EE network - Test channel only",
+        "service_mode": "live",
+        "broadcast_channel": "test",
+        "provider_restriction": "ee",
+    },
+    {
+        "description": "Live - O2 network - Test channel only",
+        "service_mode": "live",
+        "broadcast_channel": "test",
+        "provider_restriction": "o2",
+    },
+    {
+        "description": "Live - Three network - Test channel only",
+        "service_mode": "live",
+        "broadcast_channel": "test",
+        "provider_restriction": "three",
+    },
+    {
+        "description": "Live - Vodafone network - Test channel only",
+        "service_mode": "live",
+        "broadcast_channel": "test",
+        "provider_restriction": "vodafone",
+    },
+    {
+        "description": "Live - All networks - Test channel only",
+        "service_mode": "live",
+        "broadcast_channel": "test",
+        "provider_restriction": None,
+    },
+    {
+        "description": "Live - All networks - Public channel",
+        "service_mode": "live",
+        "broadcast_channel": "severe",
+        "provider_restriction": None,
+    },
+]
+
 
 @main.route("/services/<uuid:service_id>/service-settings")
 @user_has_permissions('manage_service', 'manage_api_keys')
 def service_settings(service_id):
+
+    broadcast_account_type_index = get_broadcast_account_type_from_service_settings(
+        current_service.live, current_service.broadcast_channel, current_service.allowed_broadcast_provider
+    )
+    broadcast_account_type = None
+    if broadcast_account_type_index:
+        broadcast_account_type = BROADCAST_ACCOUNT_TYPES[int(broadcast_account_type_index)]["description"]
+
     return render_template(
         'views/service-settings.html',
-        service_permissions=PLATFORM_ADMIN_SERVICE_PERMISSIONS
+        service_permissions=PLATFORM_ADMIN_SERVICE_PERMISSIONS,
+        broadcast_account_type=broadcast_account_type
     )
 
 
@@ -310,6 +389,57 @@ def service_set_permission(service_id, permission):
     return render_template(
         'views/service-settings/set-service-setting.html',
         title=title,
+        form=form,
+    )
+
+
+def get_broadcast_account_type_from_service_settings(
+    service_is_live, broadcast_channel, allowed_broadcast_provider
+):
+    current_setting = None
+    for index, setting in enumerate(BROADCAST_ACCOUNT_TYPES):
+        if (
+            setting["broadcast_channel"] == broadcast_channel and
+            setting["provider_restriction"] == allowed_broadcast_provider and
+            (
+                (setting["service_mode"] == "live" and service_is_live) or
+                (setting["service_mode"] == "training" and not service_is_live)
+            )
+        ):
+            current_setting = str(index)
+
+    return current_setting
+
+
+@main.route("/services/<uuid:service_id>/service-settings/broadcasts", methods=["GET", "POST"])
+@user_is_platform_admin
+def service_set_broadcast_account_type(service_id):
+    # Given the properties of the current service, work out, if any, which of the
+    # BROADCAST_ACCOUNT_TYPES this service is, using the index in the BROADCAST_ACCOUNT_TYPES
+    # list as the identifier
+    current_setting = get_broadcast_account_type_from_service_settings(
+        current_service.live, current_service.broadcast_channel, current_service.allowed_broadcast_provider
+    )
+
+    form = ServiceBroadcastSettingForm(
+        broadcast_account_types=BROADCAST_ACCOUNT_TYPES,
+        settings=current_setting
+    )
+
+    if form.validate_on_submit():
+        settings = form.broadcast_account_types[int(form.settings.data)]
+
+        service_api_client.set_service_broadcast_settings(
+            current_service.id,
+            service_mode=settings["service_mode"],
+            broadcast_channel=settings["broadcast_channel"],
+            provider_restriction=settings["provider_restriction"]
+        )
+
+        return redirect(url_for(".service_settings", service_id=service_id))
+
+    return render_template(
+        'views/service-settings/service-broadcast-settings.html',
         form=form,
     )
 

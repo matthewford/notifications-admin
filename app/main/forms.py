@@ -2295,6 +2295,21 @@ class GoLiveNotesForm(StripWhitespaceForm):
     )
 
 
+class ServiceBroadcastSettingForm(StripWhitespaceForm):
+    def __init__(self, broadcast_account_types, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.broadcast_account_types = broadcast_account_types
+        self.settings.choices = [
+            (str(index), setting["description"]) for index, setting in enumerate(broadcast_account_types)
+        ]
+
+    settings = GovukRadiosField(
+        'Change cell broadcast service type',
+        thing='which type of account this cell broadcast service is',
+        validators=[DataRequired()]
+    )
+
+
 class AcceptAgreementForm(StripWhitespaceForm):
 
     @classmethod
