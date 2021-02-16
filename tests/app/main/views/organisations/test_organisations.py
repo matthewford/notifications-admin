@@ -1438,3 +1438,17 @@ def test_update_organisation_billing_details(
         purchase_order_number='PO1234',
         notes='very fluffy, give extra allowance'
     )
+
+
+def test_update_organisation_billing_details_errors_when_user_not_platform_admin(
+        client_request,
+        organisation_one,
+        mock_get_organisation,
+        mock_update_organisation,
+):
+    client_request.post(
+        'main.edit_organisation_billing_details',
+        org_id=organisation_one['id'],
+        _data={'notes': "Very fluffy"},
+        _expected_status=403,
+    )
