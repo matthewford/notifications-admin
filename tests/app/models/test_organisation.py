@@ -10,5 +10,4 @@ from tests import organisation_json
 ])
 def test_organisation_billing_details(purchase_order_number, expected_result):
     organisation = Organisation(organisation_json(purchase_order_number=purchase_order_number))
-    organisation._dict['purchase_order_number'] = purchase_order_number
     assert organisation.billing_details == expected_result
