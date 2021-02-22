@@ -50,9 +50,9 @@ from app.main.validators import (
     NoEmbeddedImagesInSVG,
     NoPlaceholders,
     OnlySMSCharacters,
+    SenderBlocklistValidator,
     ValidEmail,
     ValidGovEmail,
-    SenderBlocklistValidator,
 )
 from app.models.feedback import PROBLEM_TICKET_TYPE, QUESTION_TICKET_TYPE
 from app.models.organisation import Organisation
@@ -1678,6 +1678,7 @@ class ServiceSmsSenderForm(StripWhitespaceForm):
         ]
     )
     is_default = GovukCheckboxField("Make this text message sender the default")
+
 
 class ServiceEditInboundNumberForm(StripWhitespaceForm):
     is_default = GovukCheckboxField("Make this text message sender the default")
