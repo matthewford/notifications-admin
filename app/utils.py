@@ -670,3 +670,11 @@ def merge_jsonlike(source, destination):
                 source[key] = value
 
     merge_items(source, destination)
+
+
+def get_string_or_default(val, default=None):
+    return val or default
+
+
+def get_env_var(name, default=None):
+    return get_string_or_default(os.environ.get(name), default)
