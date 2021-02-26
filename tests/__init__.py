@@ -701,3 +701,7 @@ def broadcast_message_json(
         'approved_by_id': approved_by_id,
         'cancelled_by_id': cancelled_by_id,
     }
+
+
+def blocklist_json():
+    return {'blocklist': ['GOVUK', 'NHS']}

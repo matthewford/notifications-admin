@@ -14,6 +14,7 @@ from notifications_utils.clients.zendesk.zendesk_client import ZendeskClient
 import app
 from app.formatters import email_safe
 from tests import (
+    blocklist_json,
     find_element_by_tag_and_partial_text,
     invite_json,
     organisation_json,
@@ -2361,7 +2362,9 @@ def test_incorrect_sms_sender_input(
     client_request,
     no_sms_senders,
     mock_add_sms_sender,
+    mocker
 ):
+    mocker.patch('app.service_api_client.get_blocklist_for_service', return_value=blocklist_json())
     page = client_request.post(
         'main.service_add_sms_sender',
         service_id=SERVICE_ONE_ID,
@@ -2591,6 +2594,7 @@ def test_add_sms_sender(
     mock_add_sms_sender
 ):
     mocker.patch('app.service_api_client.get_sms_senders', return_value=sms_senders)
+    mocker.patch('app.service_api_client.get_blocklist_for_service', return_value=blocklist_json())
     data['sms_sender'] = "Example"
     client_request.post(
         'main.service_add_sms_sender',

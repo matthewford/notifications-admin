@@ -16,16 +16,18 @@ from app.utils import is_gov_user
 
 
 class SenderBlocklistValidator:
-    def __init__(self, values=[], message=None):
+    def __init__(self, values=None, message=None):
         if not message:
             message = 'This sender is not allowed'
         self.message = message
         self.values = values
 
     def __call__(self, form, field):
-        validation_failed = any(word in field.data for word in self.values)
-        if validation_failed:
-            raise ValidationError(self.message)
+        if self.values:
+            validation_failed = any(word in field.data for word in self.values)
+            if validation_failed:
+                raise ValidationError(self.message)
+
 
 class CommonlyUsedPassword:
     def __init__(self, message=None):

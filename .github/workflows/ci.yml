@@ -1,0 +1,23 @@
+name: CI
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.6.12
+    - name: Build and run tests
+      env:
+        NOTIFY_ENVIRONMENT: 'development'
+        FLASK_APP: 'application.py'
+        SQLALCHEMY_DATABASE_URI: "postgresql://postgres:postgres@localhost:5432/test_notification_admin"
+      run: |
+        make generate-version-file
+        pip3 install -r requirements_for_test.txt
+        npm install && npm run build
+        make test
