@@ -7,6 +7,16 @@
 
 set -o pipefail
 
+if [ ! -f 'environment.sh' ]; then
+echo "
+export FLASK_ENV='development'
+export NOTIFY_ENVIRONMENT='development'
+export FLASK_APP=application.py
+export FLASK_DEBUG=1
+export WERKZEUG_DEBUG_PIN=off
+"> environment.sh
+fi
+
 function display_result {
   RESULT=$1
   EXIT_STATUS=$2
