@@ -17,4 +17,9 @@ export WERKZEUG_DEBUG_PIN=off
 "> environment.sh
 fi
 
+# "n" is a tool for managing versions of Node.
+# The following commands installs "n" and sets our node version to the current LTS release.
+npm install -g n
+n lts
+
 scripts/install_dependencies.sh
