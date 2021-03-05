@@ -18,6 +18,7 @@ blinker==1.4
     # via
     #   -r requirements.in
     #   gds-metrics
+    #   sentry-sdk
 boto3==1.16.51
     # via notifications-utils
 botocore==1.19.51
@@ -28,7 +29,9 @@ botocore==1.19.51
 cachetools==4.2.0
     # via notifications-utils
 certifi==2020.12.5
-    # via requests
+    # via
+    #   requests
+    #   sentry-sdk
 chardet==4.0.0
     # via requests
 click==7.1.2
@@ -59,6 +62,7 @@ flask==1.1.2
     #   flask-wtf
     #   gds-metrics
     #   notifications-utils
+    #   sentry-sdk
 future==0.18.2
     # via notifications-python-client
 gds-metrics==0.2.4
@@ -181,6 +185,8 @@ s3transfer==0.3.3
     # via
     #   awscli
     #   boto3
+sentry-sdk[flask]==0.20.3
+    # via -r requirements.in
 shapely==1.7.1
     # via
     #   -r requirements.in
@@ -202,6 +208,7 @@ urllib3==1.26.2
     # via
     #   botocore
     #   requests
+    #   sentry-sdk
 webencodings==0.5.1
     # via bleach
 werkzeug==1.0.1
